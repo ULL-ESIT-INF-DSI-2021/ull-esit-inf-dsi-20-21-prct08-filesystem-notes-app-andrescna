@@ -1,0 +1,7 @@
+node_modules
+*.swp
+*.swo
+package-lock.json
+nohup.out
+/dist
+/.nyc_output
