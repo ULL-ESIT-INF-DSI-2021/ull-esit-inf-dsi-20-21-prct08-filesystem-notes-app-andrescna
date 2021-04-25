@@ -1,4 +1,4 @@
-# DSI 2021: Práctica 8 - Clases e interfaces genéricas. Principios SOLID (prct06-generics-solid/)
+# DSI 2021: Aplicación de procesamiento de notas de texto (prct08-filesystem-notes-app)
 
 [![Coverage Status](https://coveralls.io/repos/github/ULL-ESIT-INF-DSI-2021/ull-esit-inf-dsi-20-21-prct08-filesystem-notes-app-andrescna/badge.svg?branch=master)](https://coveralls.io/repos/github/ULL-ESIT-INF-DSI-2021/ull-esit-inf-dsi-20-21-prct08-filesystem-notes-app-andrescna?branch=master)
 
