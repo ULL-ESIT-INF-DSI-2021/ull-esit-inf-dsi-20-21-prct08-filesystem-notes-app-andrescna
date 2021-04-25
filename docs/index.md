@@ -5,15 +5,13 @@
 layout: default
 ---
 
-# DSI 2021: Práctica 6 - Clases e interfaces genéricas. Principios SOLID (prct06-generics-solid)
+# DSI 2021: Práctica 8 - Aplicación de procesamiento de notas de texto  (filesystem-notes-app-andrescna)
 
 ## Introducción
 
-El objetivo de esta práctica es familiarizarse con las clases e interfaces genéricas, además de con los [principios de diseño SOLID [1]](https://samueleresca.net/solid-principles-using-typescript/).
+En esta práctica, tendrá que implementar una aplicación de procesamiento de notas de texto. En concreto, la misma permitirá añadir, modificar, eliminar, listar y leer notas de un usuario concreto. Las notas se almacenarán como ficheros JSON en el sistema de ficheros de la máquina que ejecute la aplicación. Además, solo se podrá interactuar con la aplicación desde la línea de comandos.
 
-Para ello se pide resolver tres ejercicios que requerirán el uso de dichos tipos de datos. Además, se deberá documentar el código y usar la metodología TDD de desarrollo, por lo que se han de escribir purebas unitarias para comprobar el correcto funcionamiento del código. También se pide hacer uso de las herramientas Istanbul y Coveralls para analizar el porcentaje de código que cubre dichas pruebas
-
-Este informe se ha desarrollado en base al contenido de la [guía de la práctica [2]](https://ull-esit-inf-dsi-2021.github.io/prct06-generics-solid/) en Github.
+Este informe se ha desarrollado en base al contenido de la [guía de la práctica [1]](https://ull-esit-inf-dsi-2021.github.io/prct08-filesystem-notes-app/) en Github.
 
 ## Objetivos
 
@@ -22,9 +20,10 @@ Este informe se ha desarrollado en base al contenido de la [guía de la práctic
 
 ## Desarrollo
 
-### Prerrequisitos: Instalación y configuración de Istanbul y Coveralls
+### Prerrequisitos: Familiarización con los paquetes a utilizar:
 
-Antes de iniciar la práctica es conveniente instalar [Istanbul [3]](https://istanbul.js.org) y [Coveralls [4]](https://coveralls.io).
+Para está práctica es necesario instalar los paquetes [yargs](https://www.npmjs.com/package/yargs), [chalk](https://www.npmjs.com/package/chalk) y familiarizarse con la [API para trabajar de forma síncrona con ficheros de node.js](https://nodejs.org/dist/latest-v15.x/docs/api/fs.html#fs_synchronous_api)
+
 
 Para ello usaremos el siguiente comando para añadirlas como dependencias de desarrollo a nuestro proyecto:
 

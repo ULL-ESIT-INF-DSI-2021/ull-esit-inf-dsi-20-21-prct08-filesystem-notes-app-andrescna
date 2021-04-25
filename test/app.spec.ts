@@ -84,6 +84,6 @@ describe('Pruebas método Note', () => {
         user1.listNotes();
         user1.readNote(note1.title);
     })
-    
+
 });
 

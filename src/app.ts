@@ -1,7 +1,9 @@
 import {Note} from './note';
 import * as yargs from 'yargs';
 
-// AÑADIR
+/**
+* Comando add: Añade una nota nueva
+*/
 
 yargs.command({
     command: 'add',
@@ -38,7 +40,10 @@ yargs.command({
 });
 
 
-// MODIFICAR
+/**
+* Comando modify: modifica una nota ya existente
+*/
+
 yargs.command({
     command: 'modify',
     describe: 'Modifica una nota del usuario en función del título',
@@ -74,8 +79,9 @@ yargs.command({
 });
 
 
-//ELIMINAR
-
+/**
+* Comando remove: elimina una nota ya existente
+*/
 
 yargs.command({
     command: 'remove',
@@ -101,8 +107,9 @@ yargs.command({
 });
 
 
-//LISTAR TITULOS NOTAS 
-
+/**
+* Comando lst: muestra una lista con todas la notas del usuario
+*/
 
 yargs.command({
     command: 'list',
@@ -122,7 +129,9 @@ yargs.command({
     },
 });
 
-// LEER NOTA
+/**
+* Comando read: muestra el contenido de una nota del usuario
+*/
 
 yargs.command({
     command: 'read',

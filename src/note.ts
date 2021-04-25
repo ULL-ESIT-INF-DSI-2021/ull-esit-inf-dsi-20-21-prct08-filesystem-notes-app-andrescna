@@ -6,16 +6,26 @@ export class Note {
 
     private user: string;
 
+    /**
+   * Constructor de la clase Nota
+   * @param user usuario
+   */
+
     constructor(user: string) {
         this.user = user;
     }
+
+    /**
+   * Getter de la clase Nota
+   * @returns @param user nombre de usuario
+   */
 
     getUser() {
         return this.user;
     }
 
     /**
-   * Método addNote, crea una nueva nota en el directorio del usuario @param user
+   * Función addNote, crea una nueva nota en el directorio del usuario @param user
    * o crea el directorio si no existe. Cada nota se almacena en un fichero JSON
    * separado. 
    * @param title Título de la nota a crear
@@ -51,7 +61,7 @@ export class Note {
         
 
     /**
-   * Método modifyNote, modifica una nota ya creada. Permite cambiar el cuerpo de la 
+   * Función modifyNote, modifica una nota ya creada. Permite cambiar el cuerpo de la 
    * nota y el color.
    * @param title Título de la nota que se modifica
    * @param body Cuerpo de la nota que se modifica
@@ -78,7 +88,7 @@ export class Note {
 
 
     /**
-   * Método removeNote, elimina una nota ya creada. Para ello comprueba que la nota existe.
+   * Función removeNote, elimina una nota ya creada. Para ello comprueba que la nota existe.
    * @param title Título de la nota que se elimina
    * La función @returns un mensaje de éxito o error según haya podido eliminar la nota o
    * esta no exista.
@@ -100,7 +110,7 @@ export class Note {
 
 
     /**
-   * Método listNote, elimina una nota ya creada. Para ello comprueba que la nota existe.
+   * Función listNote, elimina una nota ya creada. Para ello comprueba que la nota existe.
    * La función @returns una lista de los títulos de las notas en su color correspondiente 
    * o un mensaje de error si no existen notas.
    */
@@ -123,7 +133,7 @@ export class Note {
     }
 
     /**
-   * Método readNote, lee una nota del usuario y la muestra por pantalla. Para ello 
+   * Función readNote, lee una nota del usuario y la muestra por pantalla. Para ello 
    * comprueba que la nota existe.
    * @param title título de la nota a mostrar
    * La función @returns el cuerpo de la nota en su color correspondiente
