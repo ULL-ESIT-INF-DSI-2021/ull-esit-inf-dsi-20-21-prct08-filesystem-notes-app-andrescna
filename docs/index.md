@@ -7,261 +7,201 @@ layout: default
 
 # DSI 2021: Práctica 8 - Aplicación de procesamiento de notas de texto  (filesystem-notes-app-andrescna)
 
-## Introducción
+## Introducción y objetivos
 
 En esta práctica, tendrá que implementar una aplicación de procesamiento de notas de texto. En concreto, la misma permitirá añadir, modificar, eliminar, listar y leer notas de un usuario concreto. Las notas se almacenarán como ficheros JSON en el sistema de ficheros de la máquina que ejecute la aplicación. Además, solo se podrá interactuar con la aplicación desde la línea de comandos.
 
 Este informe se ha desarrollado en base al contenido de la [guía de la práctica [1]](https://ull-esit-inf-dsi-2021.github.io/prct08-filesystem-notes-app/) en Github.
 
-## Objetivos
-
-- Realizar los ejemplos propuestos para familiarizarse con las clases e interfaces genéricas, y con los principios de diseño SOLID.
-- Familiarizarse con el uso de la herramienta de comprobación de cubrimiento de código Istambul y Coveralls
-
 ## Desarrollo
 
-### Prerrequisitos: Familiarización con los paquetes a utilizar:
+### Prerrequisitos: Familiarización con los paquetes a utilizar
 
-Para está práctica es necesario instalar los paquetes [yargs](https://www.npmjs.com/package/yargs), [chalk](https://www.npmjs.com/package/chalk) y familiarizarse con la [API para trabajar de forma síncrona con ficheros de node.js](https://nodejs.org/dist/latest-v15.x/docs/api/fs.html#fs_synchronous_api)
+Para está práctica es necesario instalar los paquetes [yargs [2]](https://www.npmjs.com/package/yargs), [chalk [3]](https://www.npmjs.com/package/chalk) y familiarizarse con la [API para trabajar de forma síncrona con ficheros de node.js [4]](https://nodejs.org/dist/latest-v15.x/docs/api/fs.html#fs_synchronous_api)
 
+### Código
 
-Para ello usaremos el siguiente comando para añadirlas como dependencias de desarrollo a nuestro proyecto:
+El código se ha distribuido en dos ficheros:
 
-```bash
-npm install --save-dev nyc coveralls
-```
+- `app.ts`: implementa la consola de comandos
+- `note.ts`: implementa las operaciones con notas y la interacción con el sistema de archivos
 
-Para usar Istambul podemos hacerlo directamente con el comando
-
-```bash
-nyc mocha
-```
-
-Y tars ejecutarlo nos mostrará por línea de comandos una tabla resumen con el porcentaje de cubrición de cada archivo y/o las líneas de código que no están siendo probadas.
-
-![Antes](./antes.png)
-
-En este ejemplo podemos ver que hay un fichero en el que so se están probando todas las líneas. Si añadimos un par de tests al fichero de pruebas y volvemos a ejecutar Istanbul, vemos que se ha corregido:
-
-![Después](./despues.png)
-
-Para poder usar Coveralls deberemos iniciar sesión en Coveralls con nuestro usuario de Github, seleccionar el repositorio que queremos monitorizar y copiar el idendificador que nos proporciona la página en un fichero `.coveralls.yml`
-
-Tras ello, añadimos en el fichero `package.json` la siguiente línea en el apartado `scripts`:
-
-```json
-"coverage": "nyc npm test && nyc report --reporter=text-lcov | coveralls && rm -rf .nyc_output"
-```
-
-Y ejecutando `npm coverage` se lanzará la prueba para comprobar el porcentaje de cubrición del código.
-
-En este caso al ser un repositorio privado perteneciente a ULL-ESIT-INF-DSI-2021 Coveralls no permite obtener el porcentaje de cubrición del código, pero este sería el procedimiento para obtenerlo.
-
-### Ejercicio 2
-
-En este ejercicio se pide:
-
-```es
-Considere una herramienta que nos permita realizar las conversiones de unidades o sistemas de medición 
-para distintas magnitudes físicas. Las más comunes pueden ser:
-
-- Velocidad
-- Masa
-- Longitud
-- Tiempo
-- Temperatura
-- Fuerza
-- Volumen
-
-Diseñe una interfaz genérica `isConvertible` que permita realizar conversiones entre sistemas para cada
-magnitud considerada. La interfaz debe definirse de modo que, aquellas clases que la implementen, ofrezcan
-la posibilidad de hacer cambios entre, al menos, dos sistemas o unidades diferentes como, por ejemplo, en 
-el caso de la velocidad, de millas por horas a kilómetros por hora. 
-
-A continuación, diseñe diferentes clases, una por magnitud física, que implementen dicha interfaz. 
-El desarrollo propuesto deberá incluir las siguientes funcionalidades:
-
-- Una clase para cada magnitud considerada.
-- Se pide ser capaz de poder cambiar, al menos, entre dos unidades o sistemas de medición por cada magnitud.
-- El software deberá seguir los principios SOLID Single Responsability and Open-Closed.
-```
-
-Para ello se ha implementado la interfaz genérica `isConvertible` de manera que sólo contenga la variable par clave-valor donde se almacenarán los factores de conversión y la función genérica de conversión, que será implementada después por cada magnitud:
+Todas las operaciones en `app.ts` tienen la misma estructura:
 
 ```typescript
-export interface isConvertible<T> {
-    factores: {[key: string]: number};
-    convert(input:T, output:string):T;
-}
+yargs.command({
+    command: 'add',
+    describe: 'Añade una nueva nota',
+    builder: {
+        user: {
+            describe: 'Usuario',
+            demandOption: true,
+            type: 'string',
+        },
+        title: {
+            describe: 'Título',
+            demandOption: true,
+            type: 'string',
+        },
+        body: {
+            describe: 'Contenido de la nota',
+            demandOption: true,
+            type: 'string',
+        },
+        color: {
+            describe: 'Color de la nota',
+            demandOption: true,
+            type: 'string',
+        },
+    },
+
+    handler(argv) {
+        if (typeof argv.user === 'string' && typeof argv.title === 'string' && typeof argv.body === 'string' && typeof argv.color === 'string') {
+        const Nota: Note = new Note(argv.user);
+        Nota.addNote(argv.title, argv.body, argv.color);
+        }
+    },
+});
 ```
 
-Se han implementado también tres magnitudes: *Masa*, *Velocidad* y *Temperatura*; cada una de las cuales implementa una función `convert()` diferente:
+La función `yargs.command`recibe varios parámetros:
 
-En el caso de la magnitud **Masa** el código desarrollado es:
+- `command`: El comando que define la operación a realizar
+- `describe`: descripción de la operación
+- `builder`: constructor de la función. Este a su vez recibe los argumentos que se solicitarán al usuario al invocar el programa
+
+Además, también incluye una función `handler` que comprueba si los argumentos se han introducido correctamente y en ese caso invoca la función de la clase `Note` que ejecuta la operación correspondiente.
+
+En el fichero `note.ts`se encuentra la definición de la clase `Note`. Se ha optado porque la clase incluya un único atributo, el nombre del usuario que la invoca. Además del constructor y un getter para el nombre de usuario (`getUser()`), contiene las siguientes funciones:
 
 ```typescript
-export class Masa implements isConvertible<{unidad:string, valor:number}>{
+class Note {
 
-    factores: {[key:string]: number};
-
-    constructor(){ this.factores = { tn: 1000, kg: 1, lb: 0.454, oz: 0.02834, g: 0.001 } }
-
-    convert(input:{unidad:string, valor:number}, output:string): {unidad:string, valor:number}{
-        return {unidad: output, valor: this.factores[input.unidad].valueOf() * input.valor.valueOf() / this.factores[output].valueOf()};
+    addNote(title: string, body: string, color: string) {
+        
+        let path: string = 'user/' + this.user;
+        
+        if (fs.existsSync(path)) {
+            if (fs.existsSync(path + "/" + title + '.json'))
+                console.log(chalk.red("ERROR - Ya existe una nota con ese nombre"));
+            else {
+                let newNote = {"title": title, "body": body, "color": color};
+                let newNoteJSON = JSON.stringify(newNote);
+                fs.writeFileSync(path + "/" + title + '.json', newNoteJSON)
+                console.log(chalk.green("Nota añadida correctamente"));
+            }
+        }
+        else {
+            fs.mkdirSync(path);
+            let newNote = {"title": title, "body": body, "color": color};
+            let newNoteJSON = JSON.stringify(newNote);
+            fs.writeFileSync(path + "/" + title + '.json', newNoteJSON)
+            console.log(chalk.green("Nota añadida correctamente"));
+        }
     }
 }
 ```
 
-Esta función permite convertir entre toneladas métricas, Kilogramos, libras, onzas y gramos. Los factores de conversión se han establecido en base al SI (kg), y para cada unidad se almacena su equivalencia en kg.
-
-La función de conversión es la siguiente:
-
-```es
-Factor de conversión unidad de entrada * Cantidad a convertir / Factor conversión unidad de salida
-```
-
-En el caso de la magnitud **Velocidad** el código desarrollado es:
+La función `addNote()` se encarga de añadir una nota. Primero comprueba si el usuario ya existe (es decir, que tenga un directorio asignado). Si existe el directorio, comprueba si la nota ya existe. Si no existe, la crea parseando los datos de la nota a un JSON y escribiendo el resultado en un fichero `title.json`. Si el usuario no existe, crea el directorio y la nota. En otro caso, da error.
 
 ```typescript
-export class Velocidad implements isConvertible<{unidad:string, valor:number}>{
+class Note {
 
-    factores: {[key:string]: number};
+    removeNote(title: string) {
 
-    constructor(){ this.factores = { mps: 1, kph: 3.6, mph: 2.2369, kn: 1.94384 } }
-
-    convert(input:{unidad:string, valor:number}, output:string): {unidad:string, valor:number}{
-        return {unidad: output, valor: input.valor.valueOf() / this.factores[input.unidad].valueOf() * this.factores[output].valueOf()};
+        let path: string = 'user/' + this.user;
+        
+        if (fs.existsSync(path + "/" + title + '.json')) {
+            fs.rmSync(path + "/" + title + '.json');
+            console.log(chalk.green("Nota eliminada correctamente"));
+        }
+        else {
+            console.log(chalk.red("ERROR - No existe una nota con ese nombre"));
+        }
     }
-
-}
 ```
-
-Esta función permite convertir entre metros por segundo, kilómetros por hora, millas por hora y nudos náuticos. Los factores de conversión se han establecido en base al SI (m/s), y para cada unidad se almacena su equivalencia en m/s. Por ello ha sido necesario modificar la fórmula de cálculo de la conversión de forma que queda:
-
-```es
-Cantidad a convertir / Factor de conversión unidad de entrada * Factor conversión unidad de salida
-```
-
-Finalmente, en el caso de la magnitud **Temperatura** el código desarrollado es:
+La función `removeNote()` se encarga de eliminar una nota. Simplemente comprueba si la nota ya existe, y si existe elimina el archivo. En caso contrario, avisa del error.
 
 ```typescript
-export class Temperatura implements isConvertible<{unidad:string, valor:number}>{
+class Note {
 
-    factores: {[key:string]: number};
+    modifyNote(title: string, body: string, color: string) {
 
-    constructor(){this.factores = { celsius: 1, farenheit: 2, kelvin: 3,}}
-
-    convert(input:{unidad:string, valor:number}, output:string): {unidad:string, valor:number}{
+        let path: string = 'user/' + this.user;
         
-        let valor_: number;
-        
-        if (input.unidad == "celsius"){
-            if (output == "farenheit")
-                valor_ = input.valor.valueOf()*(9/5)+32;
-            else if (output == "kelvin")
-                valor_ = input.valor.valueOf()+273.15;
+        if (fs.existsSync(path + "/" + title + '.json')) {
+            fs.rmSync(path + "/" + title + '.json');
+            let modNote = {"title": title, "body": body, "color": color};
+            let modNoteJSON = JSON.stringify(modNote);
+            fs.writeFileSync(path + "/" + title + '.json', modNoteJSON)
+            console.log(chalk.green("Nota modificada correctamente"));
         }
-        else if (input.unidad == "farenheit"){
-            if (output == "celsius")
-                valor_ = (input.valor.valueOf()-32)*(5/9);
-            else if (output == "kelvin")
-                valor_ = (input.valor.valueOf()-32)*(5/9)+273.15;
+        else {
+            console.log(chalk.red("ERROR - No existe una nota con ese nombre"));
         }
-        
-        else if (input.unidad == "kelvin"){
-            if (output == "farenheit")
-                valor_ = (input.valor.valueOf()-273.15)*(9/5)+32;
-            else if (output == "celsius")
-                valor_ = input.valor.valueOf()-273.15;
-        }
-        return {unidad: output, valor: valor_};
     }
-}
-
 ```
 
-Esta función permite convertir entre grados Celsius, grados Farenheit y Kelvin. Puesto que no se puede convertir directamente con factores ha sido necesario implementar manualmente las conversiones para cada par de unidades "entrada-salida".
-
-Las pruebas TDD implementadas con Mocha para comprobar el funcionamiento son:
+La función `modifyNote()` se encarga de modificar una nota ya existente. Primero comprueba si la nota existe. Si no existe,da error. Si existe, la borra y crea una nueva nota manteniendo el título original pero con los nuevos atributos `body`y `color`.
 
 ```typescript
-describe('Pruebas E2 - Masa', () => {
-    let M = new Masa(); 
-    it("Conversión g a kg", () => {
-        expect(M.convert({unidad: "g", valor: 200}, "kg").unidad).to.be.equal("kg");
-        expect(M.convert({unidad: "g", valor: 200}, "kg").valor).to.be.equal(0.2);
-    });
-    it("Conversión tn a kg", () => {
-        expect(M.convert({unidad: "tn", valor: 0.3}, "kg").unidad).to.be.equal("kg");
-        expect(M.convert({unidad: "tn", valor: 0.3}, "kg").valor).to.be.equal(300);
-    });
-    it("Conversión tn a lb", () => {
-        expect(M.convert({unidad: "tn", valor: 0.3}, "lb").unidad).to.be.equal("lb");
-        expect(M.convert({unidad: "tn", valor: 0.3}, "lb").valor.toFixed(2)).to.be.equal("660.79");
-    });
+class Note {
 
-});
+    listNotes(){
 
-describe('Pruebas E2 - Velocidad', () => {
-    let M = new Velocidad(); 
-    it("Conversión m/s a km/h", () => {
-        expect(M.convert({unidad: "mph", valor: 100}, "kph").unidad).to.be.equal("kph");
-        expect(M.convert({unidad: "mph", valor: 100}, "kph").valor.toFixed(2)).to.be.equal("160.94");
-    });
-    it("Conversión km/h a mph", () => {
-        expect(M.convert({unidad: "kph", valor: 120}, "mph").unidad).to.be.equal("mph");
-        expect(M.convert({unidad: "kph", valor: 120}, "mph").valor.toFixed(2)).to.be.equal("74.56");
-    });
-    it("Conversión kn a kph", () => {
-        expect(M.convert({unidad: "kn", valor: 29.5}, "kph").unidad).to.be.equal("kph");
-        expect(M.convert({unidad: "kn", valor: 29.5}, "kph").valor.toFixed(2)).to.be.equal("54.63");
-    });
-
-});
-
-describe('Pruebas E2 - Temperatura', () => {
-    let M = new Temperatura(); 
-    it("Conversión ºC a ºF", () => {
-        expect(M.convert({unidad: "celsius", valor: 100}, "farenheit").unidad).to.be.equal("farenheit");
-        expect(M.convert({unidad: "celsius", valor: 100}, "farenheit").valor.toFixed(2)).to.be.equal("212.00");
-    });
-    it("Conversión K a ºF", () => {
-        expect(M.convert({unidad: "kelvin", valor: 120}, "farenheit").unidad).to.be.equal("farenheit");
-        expect(M.convert({unidad: "kelvin", valor: 120}, "farenheit").valor.toFixed(2)).to.be.equal("-243.67");
-    });
-    it("Conversión ºC a K", () => {
-        expect(M.convert({unidad: "celsius", valor: 29.5}, "kelvin").unidad).to.be.equal("kelvin");
-        expect(M.convert({unidad: "celsius", valor: 29.5}, "kelvin").valor.toFixed(2)).to.be.equal("302.65");
-    });
-    it("Conversión ºF a K", () => {
-        expect(M.convert({unidad: "farenheit", valor: 32}, "kelvin").unidad).to.be.equal("kelvin");
-        expect(M.convert({unidad: "farenheit", valor: 32}, "kelvin").valor.toFixed(2)).to.be.equal("273.15");
-    });
-    it("Conversión ºF a ºC", () => {
-        expect(M.convert({unidad: "farenheit", valor: 32}, "celsius").unidad).to.be.equal("celsius");
-        expect(M.convert({unidad: "farenheit", valor: 32}, "celsius").valor.toFixed(2)).to.be.equal("0.00");
-    });
-    it("Conversión K a ºC", () => {
-        expect(M.convert({unidad: "kelvin", valor: 295}, "celsius").unidad).to.be.equal("celsius");
-        expect(M.convert({unidad: "kelvin", valor: 295}, "celsius").valor.toFixed(2)).to.be.equal("21.85");
-    });
-
-});
+        let path: string = 'user/' + this.user;
+        
+        if (fs.readdirSync(path).length === 0) {
+            console.log(chalk.red("ERROR - El usuario no dispone de notas"));
+        }
+        else {
+            let notes = fs.readdirSync(path);
+            notes.forEach(note => {
+                let readNoteJSON = fs.readFileSync(path + "/" + note, "utf-8");
+                let readNote = JSON.parse(readNoteJSON);
+                console.log(chalk.keyword(readNote["color"])(readNote["title"]));
+            });
+        }
+    }
 ```
 
-Se puede comprobar que dichas pruebas cubren por completo el código:
+La función `listNotes()` se encarga de listar todas las notas de las que disponga un usuario. En primer lugar comprueba si el directorio del usuario está vacío (es decir, que no tiene notas. En ese caso lanza error. Si el directorio no está vacío, para cada nota encontrada la lee, parsea el JSON en memoria y muestra por pantalla el título de la nota en el color que le corresponda.
 
-![Pruebas Istanbul](./istanbul.png)
+```typescript
+class Note {
+
+    readNote(title: string){
+
+        let path: string = 'user/' + this.user;
+        
+        if (fs.existsSync(path + "/" + title + '.json')) {
+            let readNoteJSON = fs.readFileSync(path + "/" + title + '.json', "utf-8");
+            let readNote = JSON.parse(readNoteJSON);
+            console.log(chalk.keyword(readNote["color"])(readNote["body"]));
+        }
+        else {
+            console.log(chalk.red("ERROR - No existe una nota con ese nombre"));
+        }
+    }
+```
+
+Finalmente, la función `readNote()` muestra por pantalla la nota que se haya solicitado. Si no existe, lanza error.
+
+Se puede comprobar el correcto funcionamiento del programa por línea de comandos en la siguiente imagen:
+
+![Prueba línea comandos](./comando.png)
+
+Igualmente, los test implementados en `./test/app.spec.ts` consiguen un cubrimiento completo del código:
+
+![test](./test.png)
 
 ## Conclusiones
 
-Esta práctica sirve de familiarización con las interfaces y clases genéricas en Typescript, el análogo a las plantillas de clase de C++ vistas en asignaturas anteriores. Por desgracia por motivos personales no me ha sido posible realizar el resto de ejercicios.
-
-También ha sido necesaria el uso de Istanbul y Coveralls para comprobar que los test están probando realmente todo el código escrito, y en ese sentido son extremadamente útiles puesto que muestran de manera clara qué código no se está comprobando.
+Esta práctica sirve de introducción al manejo de ficheros con node.js, lo cual será muy importante dominar de cara a siguientes prácticas.
 
 ## Referencias
 
-[1] Principios de diseño SOLID [https://samueleresca.net/solid-principles-using-typescript/](https://samueleresca.net/solid-principles-using-typescript/)
-[2] Guión de la práctica -  [https://ull-esit-inf-dsi-2021.github.io/prct06-generics-solid/](https://ull-esit-inf-dsi-2021.github.io/prct06-generics-solid/)
-[3] Istanbul - [https://istanbul.js.org](https://istanbul.js.org)
-[4] Coveralls - [https://coveralls.io](https://coveralls.io)
+[1] Guía de la práctica [https://ull-esit-inf-dsi-2021.github.io/prct08-filesystem-notes-app/](https://ull-esit-inf-dsi-2021.github.io/prct08-filesystem-notes-app/)
+[2] yargs [https://www.npmjs.com/package/yargs](https://www.npmjs.com/package/yargs)
+[3] chalk [https://www.npmjs.com/package/chalk](https://www.npmjs.com/package/chalk)
+[4] API ficheros síncrona de node.js [https://nodejs.org/dist/latest-v15.x/docs/api/fs.html#fs_synchronous_api](https://nodejs.org/dist/latest-v15.x/docs/api/fs.html#fs_synchronous_api)
